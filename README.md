@@ -1,8 +1,10 @@
-# TensorRT-LLM 模型部署指南（Tritonserver）
+# 🚀 TensorRT-LLM 模型部署指南（Triton Inference Server）
+
+---
+
+## 📖 简介
 
 在参考b站程序员鲁哥的视频后，进行了相应的实验，与视频中有一些不同。本指南详细介绍如何使用 TensorRT-LLM 将 Llama3-8B 模型转换为 TensorRT Engine，并部署到 Triton Inference Server。
-
-## 简介
 
 本教程面向希望学习大模型部署的开发者，通过本指南您将掌握：
 
@@ -13,39 +15,41 @@
 **整体流程**：
 
 ```
-Llama3 模型 (HuggingFace) → FasterTransformer → TensorRT Engine → Triton Server → API 服务
+🤗 HuggingFace Model → 🔄 FasterTransformer → ⚡ TensorRT Engine → 🖥️ Triton Server → 🌐 API 服务
 ```
 
 ***
 
-## 目录
+## 📋 目录
 
+- [简介](#简介)
 - [版本信息](#版本信息)
 - [Step 1：模型转换到 Engine](#step-1模型转换到-engine)
 - [Step 2：Engine 部署到 Triton Server](#step-2engine-部署到-triton-server)
+- [性能测试结果](#性能测试结果)
 - [常见问题](#常见问题)
 - [参考资料](#参考资料)
 
-***
+---
 
-## 版本信息
+## ℹ️ 版本信息
 
-| 组件               | 版本                      |
-| ---------------- | ----------------------- |
-| TensorRT-LLM（源码） | 1.0.0                   |
-| TensorRT-LLM（镜像） | 1.0.0                   |
-| Triton Server    | 25.09-trtllm-python-py3 |
-| Backends         | TensorRT-LLM源码中有        |
+| 组件 | 版本 |
+|------|------|
+| 🧠 TensorRT-LLM（源码） | 1.0.0 |
+| 🐳 TensorRT-LLM（镜像） | 1.0.0 |
+| 🖥️ Triton Server | 25.09-trtllm-python-py3 |
+| 📦 Backends | TensorRT-LLM源码中有 |
 
 > **⚠️ 注意**：需要注意 tensorrt-llm 的版本一致性。
 
 **版本匹配要求**：确保以下组件版本一致
 
-- tensorrt\_llm: 1.0.0
+- 🟢 tensorrt_llm: 1.0.0
 
-***
+---
 
-## Step 1：模型转换到 Engine
+## ⚙️ Step 1：模型转换到 Engine
 
 ### 1.1 准备模型
 
@@ -136,15 +140,23 @@ trtllm-build \
 cd /root/TensorRT-LLM/examples
 
 python run.py \
---input_text "你好啊" \
---max_output_len 50 \
+--input_text "write a story" \
+--max_output_len 500 \
 --tokenizer_dir /root/llms/Meta-Llama-3-8B-Instruct \
 --engine_dir ./models/core/llama/trt_engines
 ```
 
-***
+```bash
+python run.py \
+  --input_text "write a story" \
+  --max_output_len 500 \
+  --tokenizer_dir /root/llms/Meta-Llama-3-8B-Instruct \
+  --engine_dir ./models/core/llama/trt_engines \
+  --run_profiling
+```
+---
 
-## Step 2：Engine 部署到 Triton Server
+## 🖥️ Step 2：Engine 部署到 Triton Server
 
 ### 2.1 部署方式
 
@@ -153,7 +165,7 @@ python run.py \
 | trtllm-serve  | TensorRT-LLM 官方部署平台 | 快速测试、简单部署 |
 | Triton Server | 生产环境部署              | 工业界标准部署方式 |
 
-#### 方式一：在 tensorrt-llm 容器中快速部署(注意**⚠️**：当前1.0.0版本启动服务有点问题)
+#### 方式一：在 tensorrt-llm 容器中快速部署(注意\*\*⚠️\*\*：当前1.0.0版本启动服务有点问题)
 
 启动服务：
 
@@ -272,11 +284,48 @@ curl -X POST localhost:8000/v2/models/ensemble/generate \
 }'
 ```
 
-***
+---
 
-***
+## 📊 性能测试结果
 
-## 参考资料
+> 💡 **测试环境**
+> - 模型：Meta-Llama-3-8B-Instruct
+> - GPU：NVIDIA RTX 3090 Ti (24GB)
+> - TensorRT-LLM 版本：1.0.0
+
+---
+
+### 📦 模型大小对比
+
+| 模型类型 | 大小 | 备注 |
+|----------|------|------|
+| 🤗 HuggingFace 原始 (FP16) | 15.1 GB | 4个safetensors文件 |
+| 💾 INT8 Checkpoint | 8.5 GB | 量化后 |
+| ⚡ TensorRT Engine | 8.5 GB | 优化后 |
+| ✨ **节省空间** | **44%** | - |
+
+---
+
+### ⚡ Token 生成速度对比
+
+| 部署方式 | Token 速度 | 500 tokens 耗时 | 提升 |
+|----------|-----------|-----------------|------|
+| 🤗 HuggingFace 原生 | 44.25 tokens/s | ~11.3 秒 | - |
+| 🚀 TensorRT-LLM 直接运行 | ~101 tokens/s | ~4.9 秒 | **2.3x** |
+| 🖥️ Triton Server | ~100.8 tokens/s | ~5.0 秒 | **2.3x** |
+
+---
+
+### 🎯 关键发现
+
+- ✅ **TensorRT-LLM 提速约 2.3 倍** 相比 HuggingFace 原生模型
+- ✅ **模型体积减少 44%**（INT8 量化）
+- ✅ Triton Server 与直接运行性能基本一致
+- ✅ 启用 Paged KV Cache 和 Context FMHA 显著提升性能
+
+---
+
+## 📚 参考资料
 
 ### 官方文档
 
