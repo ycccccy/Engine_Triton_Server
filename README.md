@@ -1,6 +1,6 @@
 # 🚀 TensorRT-LLM 模型部署指南（Triton Inference Server）
 
----
+***
 
 ## 📖 简介
 
@@ -30,24 +30,24 @@
 - [常见问题](#常见问题)
 - [参考资料](#参考资料)
 
----
+***
 
 ## ℹ️ 版本信息
 
-| 组件 | 版本 |
-|------|------|
-| 🧠 TensorRT-LLM（源码） | 1.0.0 |
-| 🐳 TensorRT-LLM（镜像） | 1.0.0 |
-| 🖥️ Triton Server | 25.09-trtllm-python-py3 |
-| 📦 Backends | TensorRT-LLM源码中有 |
+| 组件                  | 版本                      |
+| ------------------- | ----------------------- |
+| 🧠 TensorRT-LLM（源码） | 1.0.0                   |
+| 🐳 TensorRT-LLM（镜像） | 1.0.0                   |
+| 🖥️ Triton Server   | 25.09-trtllm-python-py3 |
+| 📦 Backends         | TensorRT-LLM源码中有        |
 
 > **⚠️ 注意**：需要注意 tensorrt-llm 的版本一致性。
 
 **版本匹配要求**：确保以下组件版本一致
 
-- 🟢 tensorrt_llm: 1.0.0
+- 🟢 tensorrt\_llm: 1.0.0
 
----
+***
 
 ## ⚙️ Step 1：模型转换到 Engine
 
@@ -154,7 +154,8 @@ python run.py \
   --engine_dir ./models/core/llama/trt_engines \
   --run_profiling
 ```
----
+
+***
 
 ## 🖥️ Step 2：Engine 部署到 Triton Server
 
@@ -275,46 +276,47 @@ python3 scripts/launch_triton_server.py \
 ### 2.4 测试服务
 
 ```bash
-curl -X POST localhost:8000/v2/models/ensemble/generate \
+time curl -X POST localhost:8000/v2/models/ensemble/generate \
 -d '{
-  "text_input": "什么是人工智能?",
-  "max_tokens": 20,
+  "text_input": "Write a detailed explanation of neural networks",
+  "max_tokens": 500,
   "bad_words": "",
   "stop_words": ""
 }'
 ```
 
----
+***
 
 ## 📊 性能测试结果
 
 > 💡 **测试环境**
+>
 > - 模型：Meta-Llama-3-8B-Instruct
 > - GPU：NVIDIA RTX 3090 Ti (24GB)
 > - TensorRT-LLM 版本：1.0.0
 
----
+***
 
 ### 📦 模型大小对比
 
-| 模型类型 | 大小 | 备注 |
-|----------|------|------|
+| 模型类型                     | 大小      | 备注              |
+| ------------------------ | ------- | --------------- |
 | 🤗 HuggingFace 原始 (FP16) | 15.1 GB | 4个safetensors文件 |
-| 💾 INT8 Checkpoint | 8.5 GB | 量化后 |
-| ⚡ TensorRT Engine | 8.5 GB | 优化后 |
-| ✨ **节省空间** | **44%** | - |
+| 💾 INT8 Checkpoint       | 8.5 GB  | 量化后             |
+| ⚡ TensorRT Engine        | 8.5 GB  | 优化后             |
+| ✨ **节省空间**               | **44%** | -               |
 
----
+***
 
 ### ⚡ Token 生成速度对比
 
-| 部署方式 | Token 速度 | 500 tokens 耗时 | 提升 |
-|----------|-----------|-----------------|------|
-| 🤗 HuggingFace 原生 | 44.25 tokens/s | ~11.3 秒 | - |
-| 🚀 TensorRT-LLM 直接运行 | ~101 tokens/s | ~4.9 秒 | **2.3x** |
-| 🖥️ Triton Server | ~100.8 tokens/s | ~5.0 秒 | **2.3x** |
+| 部署方式                 | Token 速度         | 500 tokens 耗时 | 提升       |
+| -------------------- | ---------------- | ------------- | -------- |
+| 🤗 HuggingFace 原生    | 44.25 tokens/s   | \~11.3 秒      | -        |
+| 🚀 TensorRT-LLM 直接运行 | \~101 tokens/s   | \~4.9 秒       | **2.3x** |
+| 🖥️ Triton Server    | \~100.8 tokens/s | \~5.0 秒       | **2.3x** |
 
----
+***
 
 ### 🎯 关键发现
 
@@ -323,7 +325,7 @@ curl -X POST localhost:8000/v2/models/ensemble/generate \
 - ✅ Triton Server 与直接运行性能基本一致
 - ✅ 启用 Paged KV Cache 和 Context FMHA 显著提升性能
 
----
+***
 
 ## 📚 参考资料
 
